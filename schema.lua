@@ -1,0 +1,93 @@
+-- schema.lua — basic type validators
+local schema = {}
+
+local function path_str(path)
+    if #path == 0 then return "." end
+    local parts = {}
+    for _, p in ipairs(path) do
+        parts[#parts + 1] = (type(p) == "number") and ("[" .. p .. "]") or ("." .. p)
+    end
+    return table.concat(parts)
+end
+
+local Validator = {}
+Validator.__index = Validator
+
+function Validator:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    o._checks = o._checks or {}
+    o._optional = false
+    return o
+end
+
+function Validator:optional()
+    local v = self:clone()
+    v._optional = true
+    return v
+end
+
+function Validator:clone()
+    local copy = {}
+    for k, val in pairs(self) do copy[k] = val end
+    copy._checks = {}
+    for _, c in ipairs(self._checks) do copy._checks[#copy._checks + 1] = c end
+    setmetatable(copy, getmetatable(self))
+    return copy
+end
+
+function Validator:parse(value, path)
+    path = path or {}
+    if value == nil then
+        if self._optional then return nil, nil end
+        return nil, {{ path = path_str(path), message = "required value missing at path " .. path_str(path) }}
+    end
+    local ok, err = self:_check_type(value, path)
+    if not ok then return nil, {{ path = path_str(path), message = err }} end
+    local errors = {}
+    for _, check in ipairs(self._checks) do
+        local valid, e = check(value, path)
+        if not valid then errors[#errors + 1] = { path = path_str(path), message = e } end
+    end
+    if #errors > 0 then return nil, errors end
+    return value, nil
+end
+
+function Validator:_check_type(value, path) _ = value; _ = path; return true, nil end
+
+local StringValidator = Validator:new({ _type = "string" })
+function StringValidator:_check_type(value, path)
+    if type(value) ~= "string" then
+        return false, "expected string, got " .. type(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+local NumberValidator = Validator:new({ _type = "number" })
+function NumberValidator:_check_type(value, path)
+    if type(value) ~= "number" then
+        return false, "expected number, got " .. type(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+local BooleanValidator = Validator:new({ _type = "boolean" })
+function BooleanValidator:_check_type(value, path)
+    if type(value) ~= "boolean" then
+        return false, "expected boolean, got " .. type(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+function schema.string()
+    local v = StringValidator:new(); setmetatable(v, StringValidator); StringValidator.__index = StringValidator; return v
+end
+function schema.number()
+    local v = NumberValidator:new(); setmetatable(v, NumberValidator); NumberValidator.__index = NumberValidator; return v
+end
+function schema.boolean()
+    local v = BooleanValidator:new(); setmetatable(v, BooleanValidator); BooleanValidator.__index = BooleanValidator; return v
+end
+
+return schema
