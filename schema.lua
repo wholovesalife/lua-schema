@@ -90,4 +90,56 @@ function schema.boolean()
     local v = BooleanValidator:new(); setmetatable(v, BooleanValidator); BooleanValidator.__index = BooleanValidator; return v
 end
 
+local function push(path, key)
+    local p = {}
+    for _, v in ipairs(path) do p[#p + 1] = v end
+    p[#p + 1] = key
+    return p
+end
+
+local TableValidator = Validator:new({ _type = "table" })
+
+function TableValidator:new(shape)
+    local o = Validator.new(self, { _shape = shape or {} })
+    return o
+end
+
+function TableValidator:_check_type(value, path)
+    if type(value) ~= "table" then
+        return false, "expected table, got " .. type(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+function TableValidator:parse(value, path)
+    path = path or {}
+    if value == nil then
+        if self._optional then return nil, nil end
+        return nil, {{ path = path_str(path), message = "required value missing at path " .. path_str(path) }}
+    end
+    if type(value) ~= "table" then
+        return nil, {{ path = path_str(path), message = "expected table, got " .. type(value) .. " at path " .. path_str(path) }}
+    end
+    local errors = {}
+    local result = {}
+    for key, field_schema in pairs(self._shape) do
+        local parsed, errs = field_schema:parse(value[key], push(path, key))
+        if errs then
+            for _, e in ipairs(errs) do errors[#errors + 1] = e end
+        else
+            result[key] = parsed
+        end
+    end
+    for key, val in pairs(value) do
+        if self._shape[key] == nil then result[key] = val end
+    end
+    if #errors > 0 then return nil, errors end
+    return result, nil
+end
+
+function schema.table(shape)
+    local v = TableValidator:new(shape); setmetatable(v, TableValidator); TableValidator.__index = TableValidator; return v
+end
+schema.object = schema.table
+
 return schema
