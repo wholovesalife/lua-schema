@@ -19,12 +19,26 @@ function Validator:new(o)
     self.__index = self
     o._checks = o._checks or {}
     o._optional = false
+    o._nullable = false
+    o._custom_message = nil
     return o
 end
 
 function Validator:optional()
     local v = self:clone()
     v._optional = true
+    return v
+end
+
+function Validator:nullable()
+    local v = self:clone()
+    v._nullable = true
+    return v
+end
+
+function Validator:message(msg)
+    local v = self:clone()
+    v._custom_message = msg
     return v
 end
 
@@ -41,7 +55,7 @@ function Validator:parse(value, path)
     path = path or {}
     if value == nil then
         if self._optional then return nil, nil end
-        return nil, {{ path = path_str(path), message = "required value missing at path " .. path_str(path) }}
+        return nil, {{ path = path_str(path), message = self._custom_message or ("required value missing at path " .. path_str(path)) }}
     end
     local ok, err = self:_check_type(value, path)
     if not ok then return nil, {{ path = path_str(path), message = err }} end
