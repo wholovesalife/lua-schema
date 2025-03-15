@@ -42,6 +42,20 @@ function Validator:message(msg)
     return v
 end
 
+
+function Validator:_add_check(fn)
+    local v = self:clone()
+    v._checks[#v._checks + 1] = fn
+    return v
+end
+
+function Validator:_add_transform(fn)
+    local v = self:clone()
+    v._transforms = v._transforms or {}
+    v._transforms[#v._transforms + 1] = fn
+    return v
+end
+
 function Validator:clone()
     local copy = {}
     for k, val in pairs(self) do copy[k] = val end
@@ -155,5 +169,63 @@ function schema.table(shape)
     local v = TableValidator:new(shape); setmetatable(v, TableValidator); TableValidator.__index = TableValidator; return v
 end
 schema.object = schema.table
+
+local ArrayValidator = Validator:new({ _type = "array" })
+
+function ArrayValidator:new(item_schema)
+    local o = Validator.new(self, { _item_schema = item_schema })
+    return o
+end
+
+function ArrayValidator:parse(value, path)
+    path = path or {}
+    if value == nil then
+        if self._optional then return nil, nil end
+        return nil, {{ path = path_str(path), message = "required array missing at path " .. path_str(path) }}
+    end
+    if type(value) ~= "table" then
+        return nil, {{ path = path_str(path), message = "expected array, got " .. type(value) .. " at path " .. path_str(path) }}
+    end
+    local errors = {}
+    local result = {}
+    for i, item in ipairs(value) do
+        if self._item_schema then
+            local parsed, errs = self._item_schema:parse(item, push(path, i))
+            if errs then for _, e in ipairs(errs) do errors[#errors + 1] = e end
+            else result[i] = parsed end
+        else
+            result[i] = item
+        end
+    end
+    if #errors > 0 then return nil, errors end
+    for _, check in ipairs(self._checks) do
+        local ok, err = check(result, path)
+        if not ok then errors[#errors + 1] = { path = path_str(path), message = err } end
+    end
+    if #errors > 0 then return nil, errors end
+    return result, nil
+end
+
+function ArrayValidator:min(n)
+    return self:_add_check(function(v, p)
+        if #v < n then return false, "array too short: expected at least " .. n .. " items, got " .. #v .. " at path " .. path_str(p) end
+        return true, nil
+    end)
+end
+
+function ArrayValidator:max(n)
+    return self:_add_check(function(v, p)
+        if #v > n then return false, "array too long: expected at most " .. n .. " items, got " .. #v .. " at path " .. path_str(p) end
+        return true, nil
+    end)
+end
+
+function ArrayValidator:nonempty()
+    return self:min(1)
+end
+
+function schema.array(item_schema)
+    local v = ArrayValidator:new(item_schema); setmetatable(v, ArrayValidator); ArrayValidator.__index = ArrayValidator; return v
+end
 
 return schema
