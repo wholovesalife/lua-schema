@@ -228,4 +228,66 @@ function schema.array(item_schema)
     local v = ArrayValidator:new(item_schema); setmetatable(v, ArrayValidator); ArrayValidator.__index = ArrayValidator; return v
 end
 
+local EnumValidator = Validator:new({ _type = "enum" })
+
+function EnumValidator:new(values)
+    local o = Validator.new(self, { _values = values or {} })
+    o._values_set = {}
+    for _, v in ipairs(values) do o._values_set[v] = true end
+    return o
+end
+
+function EnumValidator:_check_type(value, path)
+    if not self._values_set[value] then
+        local allowed = {}
+        for _, v in ipairs(self._values) do allowed[#allowed + 1] = tostring(v) end
+        return false, "expected one of [" .. table.concat(allowed, ", ") .. "], got " .. tostring(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+local UnionValidator = Validator:new({ _type = "union" })
+
+function UnionValidator:new(schemas)
+    local o = Validator.new(self, { _schemas = schemas or {} })
+    return o
+end
+
+function UnionValidator:parse(value, path)
+    path = path or {}
+    if value == nil and self._optional then return nil, nil end
+    for _, s in ipairs(self._schemas) do
+        local parsed, errs = s:parse(value, path)
+        if not errs then return parsed, nil end
+    end
+    return nil, {{ path = path_str(path), message = self._custom_message or ("value did not match any variant at path " .. path_str(path)) }}
+end
+
+local LiteralValidator = Validator:new({ _type = "literal" })
+
+function LiteralValidator:new(expected)
+    local o = Validator.new(self, { _expected = expected })
+    return o
+end
+
+function LiteralValidator:_check_type(value, path)
+    if value ~= self._expected then
+        return false, "expected literal " .. tostring(self._expected) .. ", got " .. tostring(value) .. " at path " .. path_str(path)
+    end
+    return true, nil
+end
+
+function schema.enum(values)
+    local v = EnumValidator:new(values); setmetatable(v, EnumValidator); EnumValidator.__index = EnumValidator; return v
+end
+function schema.union(schemas)
+    local v = UnionValidator:new(schemas); setmetatable(v, UnionValidator); UnionValidator.__index = UnionValidator; return v
+end
+function schema.literal(value)
+    local v = LiteralValidator:new(value); setmetatable(v, LiteralValidator); LiteralValidator.__index = LiteralValidator; return v
+end
+function schema.any()
+    local v = Validator:new(); setmetatable(v, Validator); return v
+end
+
 return schema
