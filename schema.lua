@@ -345,3 +345,4 @@ end
 -- url validator
 -- strict mode
 -- refine
+-- optional(): value may be absent (nil); validation is skipped entirely when nil
