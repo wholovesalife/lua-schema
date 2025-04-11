@@ -360,3 +360,9 @@ print(string.format("  %d passed, %d failed", passed, failed))
 if failed > 0 then
     os.exit(1)
 end
+
+test("nested optional field absent passes", function()
+    local Schema = s.table({ meta = s.table({ tags = s.array(s.string()):optional() }) })
+    local v, errs = Schema:parse({ meta = {} })
+    assert_ok(v, errs)
+end)
