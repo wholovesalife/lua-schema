@@ -206,3 +206,5 @@ lua schema_test.lua
 - `s.transform(schema, fn)` — standalone transform
 - `s.intersection(a, b)` — merge two object schemas
 - LuaRocks rockspec
+
+<!-- schema.any() accepts any value without type checking; useful as a placeholder schema -->
