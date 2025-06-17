@@ -346,3 +346,4 @@ end
 -- strict mode
 -- refine
 -- optional(): value may be absent (nil); validation is skipped entirely when nil
+-- clone(): _checks list is deep-copied; _shape table reference is shared (shallow)
