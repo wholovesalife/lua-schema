@@ -378,3 +378,8 @@ test("union optional passes nil", function()
     local v, errs = Schema:parse(nil)
     assert(errs == nil)
 end)
+
+test("literal rejects wrong type entirely", function()
+    local v, errs = s.literal(42):parse("42")
+    assert_err(v, errs, "literal")
+end)
