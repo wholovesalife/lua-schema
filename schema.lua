@@ -224,6 +224,21 @@ function ArrayValidator:nonempty()
     return self:min(1)
 end
 
+
+function TableValidator:strict()
+    local v = self:clone()
+    v._strict = true
+    return v
+end
+
+function TableValidator:extend(extra_shape)
+    local v = self:clone()
+    v._shape = {}
+    for k, s in pairs(self._shape) do v._shape[k] = s end
+    for k, s in pairs(extra_shape) do v._shape[k] = s end
+    return v
+end
+
 function schema.array(item_schema)
     local v = ArrayValidator:new(item_schema); setmetatable(v, ArrayValidator); ArrayValidator.__index = ArrayValidator; return v
 end
