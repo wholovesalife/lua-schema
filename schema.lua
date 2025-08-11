@@ -347,3 +347,5 @@ end
 -- refine
 -- optional(): value may be absent (nil); validation is skipped entirely when nil
 -- clone(): _checks list is deep-copied; _shape table reference is shared (shallow)
+
+-- string validators: min, max, pattern and email are defined as _add_check extensions
