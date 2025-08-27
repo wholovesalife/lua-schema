@@ -349,3 +349,4 @@ end
 -- clone(): _checks list is deep-copied; _shape table reference is shared (shallow)
 
 -- string validators: min, max, pattern and email are defined as _add_check extensions
+-- _values_set: O(1) membership check mirror of _values list; both updated together
