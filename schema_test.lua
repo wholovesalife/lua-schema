@@ -403,3 +403,8 @@ test("array no schema passes heterogeneous input", function()
     assert_ok(v, errs)
     assert(#v == 4)
 end)
+
+test("boolean does not coerce string", function()
+    local v, errs = s.boolean():parse("true")
+    assert_err(v, errs, "expected boolean")
+end)
