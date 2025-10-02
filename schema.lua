@@ -79,7 +79,14 @@ function Validator:parse(value, path)
         if not valid then errors[#errors + 1] = { path = path_str(path), message = e } end
     end
     if #errors > 0 then return nil, errors end
-    return value, nil
+    -- Apply transforms
+    local result = value
+    if self._transforms then
+        for _, transform in ipairs(self._transforms) do
+            result = transform(result)
+        end
+    end
+    return result, nil
 end
 
 function Validator:_check_type(value, path) _ = value; _ = path; return true, nil end
@@ -111,9 +118,26 @@ end
 function schema.string()
     local v = StringValidator:new(); setmetatable(v, StringValidator); StringValidator.__index = StringValidator; return v
 end
+
+function StringValidator:coerce()
+    return self:_add_transform(function(v)
+        return tostring(v)
+    end)
+end
+
 function schema.number()
     local v = NumberValidator:new(); setmetatable(v, NumberValidator); NumberValidator.__index = NumberValidator; return v
 end
+
+function NumberValidator:coerce()
+    return self:_add_transform(function(v)
+        if type(v) == "string" then
+            return tonumber(v) or v
+        end
+        return v
+    end)
+end
+
 function schema.boolean()
     local v = BooleanValidator:new(); setmetatable(v, BooleanValidator); BooleanValidator.__index = BooleanValidator; return v
 end
