@@ -352,3 +352,4 @@ end
 -- _values_set: O(1) membership check mirror of _values list; both updated together
 -- strict(): returns a clone with _strict=true; TableValidator:parse rejects undeclared keys
 -- refine(fn): _add_check wrapper for custom predicates; fn(value, path) -> bool, errmsg
+-- push(path, key): creates a new path table each call; path is not mutated in-place
