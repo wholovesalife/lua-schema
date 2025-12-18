@@ -353,3 +353,4 @@ end
 -- strict(): returns a clone with _strict=true; TableValidator:parse rejects undeclared keys
 -- refine(fn): _add_check wrapper for custom predicates; fn(value, path) -> bool, errmsg
 -- push(path, key): creates a new path table each call; path is not mutated in-place
+-- schema.object is an alias for schema.table; both validate Lua tables with a shape
