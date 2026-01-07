@@ -440,3 +440,8 @@ test("literal accepts boolean literal", function()
     assert_ok(v, errs)
     assert(v == true)
 end)
+
+test("number int rejects infinity", function()
+    local v, errs = s.number():int():parse(math.huge)
+    assert_err(v, errs, "integer")
+end)
