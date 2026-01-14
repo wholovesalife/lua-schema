@@ -354,3 +354,4 @@ end
 -- refine(fn): _add_check wrapper for custom predicates; fn(value, path) -> bool, errmsg
 -- push(path, key): creates a new path table each call; path is not mutated in-place
 -- schema.object is an alias for schema.table; both validate Lua tables with a shape
+-- clone(): _transforms table is not deep-copied; use _add_transform to create a new copy
