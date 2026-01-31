@@ -453,3 +453,8 @@ test("parse throws error containing field path", function()
     assert(not ok)
     assert(err:find("name"), "expected field name in error: " .. tostring(err))
 end)
+
+test("missing required string error path is root", function()
+    local _, errs = s.string():parse(nil)
+    assert(errs ~= nil and errs[1].path == ".", "expected path ., got: " .. tostring(errs and errs[1].path))
+end)
