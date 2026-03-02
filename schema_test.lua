@@ -483,3 +483,9 @@ test("nested table collects multiple errors", function()
     local _, errs = Schema:parse({ a = "bad", b = 42 })
     assert(errs ~= nil and #errs == 2, "expected 2 errors, got " .. tostring(errs and #errs))
 end)
+
+test("number coerce from non-numeric string returns original", function()
+    -- tonumber("abc") returns nil; coerce falls back to original value
+    local v, _ = s.number():coerce():parse("abc")
+    assert(v == "abc", "expected fallback to original value")
+end)
