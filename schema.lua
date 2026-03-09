@@ -355,3 +355,4 @@ end
 -- push(path, key): creates a new path table each call; path is not mutated in-place
 -- schema.object is an alias for schema.table; both validate Lua tables with a shape
 -- clone(): _transforms table is not deep-copied; use _add_transform to create a new copy
+-- union(): schemas are tried in the order passed; first success wins (no backtracking)
