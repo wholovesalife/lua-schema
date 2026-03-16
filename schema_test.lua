@@ -489,3 +489,12 @@ test("number coerce from non-numeric string returns original", function()
     local v, _ = s.number():coerce():parse("abc")
     assert(v == "abc", "expected fallback to original value")
 end)
+
+test("enum accepts all declared values", function()
+    local vals = { "r", "g", "b", "a" }
+    local Schema = s.enum(vals)
+    for _, val in ipairs(vals) do
+        local v, errs = Schema:parse(val)
+        assert_ok(v, errs)
+    end
+end)
