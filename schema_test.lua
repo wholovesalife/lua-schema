@@ -498,3 +498,9 @@ test("enum accepts all declared values", function()
         assert_ok(v, errs)
     end
 end)
+
+test("strict table rejects extra key with error", function()
+    local Schema = s.table({ name = s.string() }):strict()
+    local _, errs = Schema:parse({ name = "x", extra = "y" })
+    assert(errs ~= nil, "expected validation errors from strict mode")
+end)
