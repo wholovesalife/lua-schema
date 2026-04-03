@@ -504,3 +504,8 @@ test("strict table rejects extra key with error", function()
     local _, errs = Schema:parse({ name = "x", extra = "y" })
     assert(errs ~= nil, "expected validation errors from strict mode")
 end)
+
+test("nullable string accepts nil value", function()
+    local v, errs = s.string():nullable():parse(nil)
+    assert(errs == nil, "nullable should accept nil")
+end)
