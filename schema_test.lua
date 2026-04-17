@@ -509,3 +509,10 @@ test("nullable string accepts nil value", function()
     local v, errs = s.string():nullable():parse(nil)
     assert(errs == nil, "nullable should accept nil")
 end)
+
+test("array min error message includes counts", function()
+    local _, errs = s.array(s.string()):min(5):parse({ "a", "b" })
+    assert(errs ~= nil)
+    local msg = errs[1].message
+    assert(msg:find("2"), "expected actual count in message: " .. msg)
+end)
