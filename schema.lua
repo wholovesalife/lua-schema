@@ -343,3 +343,4 @@ local function fmt_path(path)
 end
 -- date validator
 -- url validator
+-- strict mode
