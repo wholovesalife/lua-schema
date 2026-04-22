@@ -344,3 +344,4 @@ end
 -- date validator
 -- url validator
 -- strict mode
+-- refine
