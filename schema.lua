@@ -330,3 +330,14 @@ function schema.any()
 end
 
 return schema
+
+-- path helper: returns dot-notation path string
+local function fmt_path(path)
+  if not path or #path == 0 then return "root" end
+  local parts = {}
+  for _, p in ipairs(path) do
+    if type(p) == "number" then parts[#parts+1] = "[" .. p .. "]"
+    else parts[#parts+1] = "." .. p end
+  end
+  return table.concat(parts)
+end
